@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Base64 Encoder</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Geist Mono', 'Courier New', monospace;
+      background: #f3f0eb;
+      color: #1a1816;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      margin-bottom: 1.5rem;
+      font-weight: 700;
+    }
+
+    .upload-zone {
+      border: 2px dashed #ccc;
+      background: #fff;
+      padding: 3rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .upload-zone:hover {
+      border-color: #e05858;
+      background: #faf8f6;
+    }
+
+    .upload-zone.dragover {
+      border-color: #e05858;
+      background: #fdf5f5;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .file-info {
+      font-size: 0.8rem;
+      color: #6b6560;
+      margin-top: 0.5rem;
+    }
+
+    .result {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      color: #6b6560;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: 'Geist Mono', 'Courier New', monospace;
+      font-size: 0.75rem;
+      padding: 1rem;
+      border: 1px solid rgba(26, 24, 22, 0.1);
+      background: #fff;
+      resize: vertical;
+    }
+
+    .copy-btn {
+      margin-top: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-family: inherit;
+      font-size: 0.75rem;
+      background: #e05858;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .copy-btn:hover {
+      opacity: 0.85;
+    }
+
+    .copy-btn.copied {
+      background: #69B069;
+    }
+
+    .hint {
+      font-size: 0.7rem;
+      color: #9a9590;
+      margin-top: 1rem;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Base64 Encoder</h1>
+
+    <div class="upload-zone" id="dropZone">
+      <p>Arrastra el archivo aquí o haz click</p>
+      <p class="file-info" id="fileName">Ningún archivo seleccionado</p>
+      <input type="file" id="fileInput">
+    </div>
+
+    <div class="result">
+      <label for="output">Resultado (Base64)</label>
+      <textarea id="output" placeholder="El base64 aparecera aquí..." readonly></textarea>
+      <button class="copy-btn" id="copyBtn">Copiar</button>
+    </div>
+
+    <p class="hint">
+      Selecciona el certificado (.p12, .pfx, .cer) o el documento PDF para generar el string Base64.
+    </p>
+  </div>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileName = document.getElementById('fileName');
+    const output = document.getElementById('output');
+    const copyBtn = document.getElementById('copyBtn');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length) processFile(files[0]);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) processFile(e.target.files[0]);
+    });
+
+    function processFile(file) {
+      fileName.textContent = `${file.name} (${formatBytes(file.size)})`;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result.split(',')[1];
+        output.value = base64;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(output.value).then(() => {
+        copyBtn.textContent = 'Copiado!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = 'Copiar';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+
+</html>
